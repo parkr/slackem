@@ -34,10 +34,11 @@ var hexColors = map[string]string{
 }
 
 type slackPayload struct {
-	Channel     string             `json:"channel"`
-	Username    string             `json:"username"`
-	IconEmoji   string             `json:"icon_emoji"`
-	Attachments []slack.Attachment `json:"attachments"`
+	Channel     string             `json:"channel,omitempty"`
+	Username    string             `json:"username,omitempty"`
+	IconEmoji   string             `json:"icon_emoji,omitempty"`
+	Text        string             `json:"text,omitempty"`
+	Attachments []slack.Attachment `json:"attachments,omitempty"`
 }
 
 func slackNewAttachment(message, color string) []slack.Attachment {
@@ -50,12 +51,23 @@ func slackNewAttachment(message, color string) []slack.Attachment {
 }
 
 func slackNewPayload(channel, message, color string) ([]byte, error) {
-	return json.Marshal(slackPayload{
-		Channel:     channel,
-		Username:    slackUsername,
-		IconEmoji:   slackIconEmoji,
-		Attachments: slackNewAttachment(message, color),
-	})
+	if color == "" {
+		// Send ordinary message
+		return json.Marshal(slackPayload{
+			Channel:   channel,
+			Username:  slackUsername,
+			IconEmoji: slackIconEmoji,
+			Text:      message,
+		})
+	} else {
+		// Send colorful message
+		return json.Marshal(slackPayload{
+			Channel:     channel,
+			Username:    slackUsername,
+			IconEmoji:   slackIconEmoji,
+			Attachments: slackNewAttachment(message, color),
+		})
+	}
 }
 
 func slackPostToChannel(channel, message, color string) error {
@@ -117,7 +129,7 @@ func fatal(msg string) {
 
 func main() {
 	var color string
-	flag.StringVar(&color, "color", "grey", "The color on the left of the message.")
+	flag.StringVar(&color, "color", "", "The color on the left of the message.")
 	flag.Parse()
 
 	setupConfigs()

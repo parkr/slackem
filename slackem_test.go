@@ -110,6 +110,16 @@ func TestSlackNewPayload(t *testing.T) {
 	assertContainsAllRelevantJSON(t, string(json))
 }
 
+func TestSlackNewPayloadNoColor(t *testing.T) {
+	json, err := slackNewPayload("#growth", "hi there team!", "")
+	assert.NoError(t, err)
+	body := string(json)
+	assert.Contains(t, body, `"text":"hi there team!"`)
+	assert.Contains(t, body, `"channel":"#growth"`)
+	assert.Contains(t, body, `"username":"slackem"`)
+	assert.Contains(t, body, `"icon_emoji":":rocket:"`)
+}
+
 func TestSetupConfigs(t *testing.T) {
 	// Defaults
 	os.Setenv("SLACK_WEBHOOK_URL", "")
